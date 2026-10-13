@@ -6,11 +6,14 @@ import ArticleCard from './components/ArticleCard.vue'
 import ArticleCover from './components/ArticleCover.vue'
 import ArticleReader from './components/ArticleReader.vue'
 import AppIcon from './components/AppIcon.vue'
-import { articles, featuredArticle, formatDate } from './data/articles'
+import { formatDate } from './utils/date'
+import { useBlog } from './composables/useBlog'
 import { useTheme } from './composables/useTheme'
 import type { Article } from './types/blog'
 
 const { theme, toggleTheme } = useTheme()
+const { articles, tags, isLoading, loadError, loadBlog } = useBlog()
+const featuredArticle = computed(() => articles.value.find(article => article.isFeatured) ?? articles.value[0])
 const currentView = ref<'home' | 'archive'>('home')
 const selectedTag = ref<string | null>(null)
 const searchQuery = ref('')
@@ -22,7 +25,7 @@ const activeArticle = ref<Article | null>(null)
 // 标签精确匹配，关键词搜索标题、摘要和标签；列表统一由 computed 派生。
 const filteredArticles = computed(() => {
   const query = searchQuery.value.trim().toLocaleLowerCase()
-  return articles.filter(article => {
+  return articles.value.filter(article => {
     const matchesTag = selectedTag.value === null || article.tags.includes(selectedTag.value)
     const searchableText = [article.title, article.excerpt, ...article.tags].join(' ').toLocaleLowerCase()
     return matchesTag && (!query || searchableText.includes(query))
@@ -97,9 +100,16 @@ function resetFilters() {
   />
   <main id="main-content" class="container blog-container">
     <h1 class="visually-hidden">拾光 · 个人博客</h1>
-    <div class="row content-layout">
+    <section v-if="isLoading" class="blog-status" role="status">
+      <AppIcon name="book" />正在加载文章…
+    </section>
+    <section v-else-if="loadError" class="alert alert-danger blog-status" role="alert">
+      <span>{{ loadError }}</span>
+      <button v-ripple class="btn btn-outline-primary" type="button" @click="loadBlog">重新加载</button>
+    </section>
+    <div v-else class="row content-layout">
       <div class="col-12 col-lg-8 main-column">
-        <section v-if="currentView === 'home'" class="featured-section" aria-labelledby="featured-heading">
+        <section v-if="currentView === 'home' && featuredArticle" class="featured-section" aria-labelledby="featured-heading">
           <div class="section-heading">
             <div>
               <h2 id="featured-heading">精选文章</h2>
@@ -111,14 +121,14 @@ function resetFilters() {
               class="featured-cover cover-button"
               type="button"
               :aria-label="`阅读：${featuredArticle.title}`"
-              @click="activeArticle = featuredArticle"
+              @click="activeArticle = featuredArticle ?? null"
             >
               <ArticleCover :variant="featuredArticle.cover" />
             </button>
             <div class="card-body">
               <span class="badge tag-badge">{{ featuredArticle.tags[0] }}</span>
               <h3>
-                <button class="title-button" type="button" @click="activeArticle = featuredArticle">
+                <button class="title-button" type="button" @click="activeArticle = featuredArticle ?? null">
                   {{ featuredArticle.title }}
                 </button>
               </h3>
@@ -128,7 +138,7 @@ function resetFilters() {
                   <time :datetime="featuredArticle.date">{{ formatDate(featuredArticle.date) }}</time>
                   · {{ featuredArticle.readMinutes }} 分钟阅读
                 </span>
-                <button v-ripple class="read-link" type="button" @click="activeArticle = featuredArticle">
+                <button v-ripple class="read-link" type="button" @click="activeArticle = featuredArticle ?? null">
                   阅读全文
                   <AppIcon name="arrow" />
                 </button>
@@ -230,7 +240,7 @@ function resetFilters() {
         </section>
       </div>
       <div class="col-12 col-lg-4 sidebar-column">
-        <BlogSidebar :selected-tag="selectedTag" @tag="selectTag" />
+        <BlogSidebar :selected-tag="selectedTag" :tags="tags" @tag="selectTag" />
       </div>
     </div>
     <section class="closing-note">

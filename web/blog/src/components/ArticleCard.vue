@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { Article } from '../types/blog'
-import { formatDate } from '../data/articles'
+import { formatDate } from '../utils/date'
 import AppIcon from './AppIcon.vue'
 import ArticleCover from './ArticleCover.vue'
 

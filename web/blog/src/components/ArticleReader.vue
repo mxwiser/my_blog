@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
 import type { Article } from '../types/blog'
-import { formatDate } from '../data/articles'
+import { formatDate } from '../utils/date'
 import ArticleCover from './ArticleCover.vue'
 import AppIcon from './AppIcon.vue'
 
@@ -48,7 +48,7 @@ function closeOnBackdrop(event: MouseEvent) {
       <div class="reader-content">
         <span class="badge tag-badge">{{ article.tags.join(' · ') }}</span>
         <h2 id="reader-title">{{ article.title }}</h2>
-        <p class="reader-meta">{{ formatDate(article.date) }} · {{ article.readMinutes }} 分钟阅读 · 示例文章</p>
+        <p class="reader-meta">{{ formatDate(article.date) }} · {{ article.readMinutes }} 分钟阅读<template v-if="article.isSample"> · 示例文章</template></p>
         <p class="reader-intro">{{ article.excerpt }}</p>
         <section v-for="section in article.sections" :key="section.heading">
           <h3>{{ section.heading }}</h3>

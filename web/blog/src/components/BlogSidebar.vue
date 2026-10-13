@@ -1,11 +1,9 @@
 <script setup lang="ts">
-import { computed } from 'vue'
-import { articles } from '../data/articles'
+import type { ArticleTag } from '../types/blog'
 import AppIcon from './AppIcon.vue'
 
-defineProps<{ selectedTag: string | null }>()
+defineProps<{ selectedTag: string | null; tags: ArticleTag[] }>()
 const emit = defineEmits<{ tag: [tag: string] }>()
-const tags = computed(() => [...new Set(articles.flatMap(article => article.tags))])
 </script>
 
 <template>
@@ -18,15 +16,15 @@ const tags = computed(() => [...new Set(articles.flatMap(article => article.tags
       <div class="tag-cloud">
         <button
           v-for="tag in tags"
-          :key="tag"
+          :key="tag.name"
           v-ripple
           class="tag-button"
-          :class="{ active: selectedTag === tag }"
+          :class="{ active: selectedTag === tag.name }"
           type="button"
-          :aria-pressed="selectedTag === tag"
-          @click="emit('tag', tag)"
+          :aria-pressed="selectedTag === tag.name"
+          @click="emit('tag', tag.name)"
         >
-          {{ tag }}
+          {{ tag.name }}
         </button>
       </div>
     </section>

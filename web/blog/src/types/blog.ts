@@ -11,5 +11,12 @@ export interface Article {
   readMinutes: number
   tags: string[]
   cover: 'landscape' | 'code' | 'design' | 'coffee' | 'notes'
+  isFeatured: boolean
+  isSample: boolean
   sections: ArticleSection[]
+}
+
+export interface ArticleTag {
+  name: string
+  count: number
 }
